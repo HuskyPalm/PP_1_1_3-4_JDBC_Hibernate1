@@ -37,7 +37,9 @@ public class UserDaoJDBCImpl implements UserDao {
 
     public void createUsersTable() {
         try (Statement statement = connection.createStatement();) {
+            connection.setAutoCommit(false);
             statement.executeUpdate(CREATE_USERS_TABLE_SQL);
+            connection.commit();
             System.out.println("Created table in given database...");
         } catch (SQLException e) {
             e.printStackTrace();
@@ -47,7 +49,9 @@ public class UserDaoJDBCImpl implements UserDao {
 
     public void dropUsersTable() {
         try (Statement statement = connection.createStatement();) {
+            connection.setAutoCommit(false);
             statement.executeUpdate(DROP_USERS_TABLE_SQL);
+            connection.commit();
             System.out.println("Dropped  table in given database...");
         } catch (SQLException e) {
             e.printStackTrace();
@@ -57,10 +61,12 @@ public class UserDaoJDBCImpl implements UserDao {
 
     public void saveUser(String name, String lastName, byte age) {
         try (PreparedStatement statement = connection.prepareStatement(ADD_STUDENT_SQL);) {
+            connection.setAutoCommit(false);
             statement.setString(1, name);
             statement.setString(2, lastName);
             statement.setByte(3, age);
             statement.executeUpdate();
+            connection.commit();
             System.out.println("User with name: \"" + name + " " + lastName + "\" added to database...");
         } catch (SQLException e) {
             e.printStackTrace();
@@ -70,8 +76,10 @@ public class UserDaoJDBCImpl implements UserDao {
 
     public void removeUserById(long id) {
         try (PreparedStatement statement = connection.prepareStatement(DELETE_BY_ID_SQL);) {
+            connection.setAutoCommit(false);
             statement.setLong(1, id);
             statement.executeUpdate();
+            connection.commit();
             System.out.println("Deleted user in given database, id " + id + "...");
         } catch (SQLException e) {
             e.printStackTrace();
@@ -79,9 +87,10 @@ public class UserDaoJDBCImpl implements UserDao {
 
     }
 
-    public List<User> getAllUsers() {
+    public List<User> getAllUsers() throws SQLException {
         List < User > users = new ArrayList< >();
         try (PreparedStatement statement = connection.prepareStatement(SHOW_ALL_SQL);) {
+            connection.setAutoCommit(false);
             ResultSet queryResult = statement.executeQuery();
             while (queryResult.next()) {
                 User tmpUser = new User();
@@ -91,16 +100,20 @@ public class UserDaoJDBCImpl implements UserDao {
                 tmpUser.setAge(queryResult.getByte("age"));
                 users.add(tmpUser);
             }
+            connection.commit();
         } catch (SQLException e) {
             e.printStackTrace();
+            connection.rollback();
         }
         return users;
     }
 
     public void cleanUsersTable() {
         try (Statement statement = connection.createStatement();) {
+            connection.setAutoCommit(false);
             statement.executeUpdate(CLEAR_USERS_TABLE_SQL);
             System.out.println("Cleared table in given database...");
+            connection.commit();
         } catch (SQLException e) {
             e.printStackTrace();
         }
